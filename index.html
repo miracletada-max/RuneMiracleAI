@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Rune Miracle AI</title>
+
+<style>
+
+*{box-sizing:border-box}
+
+body{
+
+  margin:0;
+
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+
+  background:radial-gradient(circle at top,#2b1458,#07030f 65%);
+
+  color:#f5ecff;
+
+  min-height:100vh;
+
+}
+
+.wrap{max-width:850px;margin:auto;padding:24px 16px 60px}
+
+h1{text-align:center;font-size:34px;margin:18px 0 6px}
+
+.sub{text-align:center;color:#d8c7ff;margin-bottom:22px}
+
+.card{
+
+  background:rgba(255,255,255,.08);
+
+  border:1px solid rgba(255,255,255,.18);
+
+  border-radius:22px;
+
+  padding:22px;
+
+  margin:18px 0;
+
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+
+}
+
+button{
+
+  width:100%;
+
+  padding:15px;
+
+  margin:8px 0;
+
+  border:0;
+
+  border-radius:16px;
+
+  font-size:17px;
+
+  font-weight:700;
+
+  background:linear-gradient(135deg,#8b5cf6,#06b6d4);
+
+  color:white;
+
+}
+
+.question button{background:rgba(255,255,255,.14)}
+
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+
+.stone{
+
+  aspect-ratio:1/1;
+
+  border-radius:50%;
+
+  background:radial-gradient(circle at 35% 30%,#75539a,#21102f);
+
+  border:1px solid rgba(255,255,255,.25);
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  font-size:28px;
+
+  color:#fff;
+
+  box-shadow:inset 0 0 18px rgba(255,255,255,.08),0 6px 14px rgba(0,0,0,.25);
+
+}
+
+.stone.selected{
+
+  background:radial-gradient(circle,#fff2b8,#8b5cf6);
+
+  color:#19062b;
+
+  transform:scale(1.08);
+
+}
+
+.hidden{display:none}
+
+.result{
+
+  line-height:1.9;
+
+  font-size:17px;
+
+  white-space:pre-wrap;
+
+}
+
+.runeBig{
+
+  text-align:center;
+
+  font-size:72px;
+
+  margin:8px 0;
+
+  text-shadow:0 0 25px #d8b4fe;
+
+}
+
+.name{text-align:center;font-size:24px;font-weight:800}
+
+.price{
+
+  display:grid;
+
+  gap:10px;
+
+}
+
+.price div{
+
+  background:rgba(255,255,255,.1);
+
+  padding:14px;
+
+  border-radius:14px;
+
+}
+
+.footer{text-align:center;color:#b7a5d8;font-size:13px;margin-top:25px}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="wrap">
+
+  <h1>🔮 RUNE MIRACLE AI</h1>
+
+  <div class="sub">古代ルーン文字の神託</div>
+
+  <div id="intro" class="card">
+
+    <p>
+
+      心を静め、今いちばん知りたいことを選んでください。<br>
+
+      24個のルーン石の中から、直感でひとつ選ぶと鑑定結果が表示されます。
+
+    </p>
+
+    <button onclick="showQuestion()">占いを始める</button>
+
+  </div>
+
+  <div id="question" class="card question hidden">
+
+    <h2>何を占いますか？</h2>
+
+    <button onclick="chooseQuestion('今日の運勢')">今日の運勢</button>
+
+    <button onclick="chooseQuestion('恋愛・相性')">恋愛・相性</button>
+
+    <button onclick="chooseQuestion('仕事・金運')">仕事・金運</button>
+
+    <button onclick="chooseQuestion('人生の転機')">人生の転機</button>
+
+    <button onclick="chooseQuestion('悩みの解決')">悩みの解決</button>
+
+  </div>
+
+  <div id="stones" class="card hidden">
+
+    <h2>石をひとつ選んでください</h2>
+
+    <p id="chosenQ"></p>
+
+    <div id="stoneGrid" class="grid"></div>
+
+  </div>
+
+  <div id="result" class="card hidden">
+
+    <div id="runeSymbol" class="runeBig"></div>
+
+    <div id="runeName" class="name"></div>
+
+    <div id="reading" class="result"></div>
+
+    <button onclick="resetApp()">もう一度占う</button>
+
+  </div>
+
+  <div class="card">
+
+    <h2>料金メニュー</h2>
+
+    <div class="price">
+
+      <div>今日の運勢：1回 ¥500</div>
+
+      <div>月額サブスク：¥2,000／相性占い・テーマ占い無制限</div>
+
+      <div>プレミアム鑑定：¥3,000／長文・深掘り鑑定</div>
+
+    </div>
+
+  </div>
+
+  <div class="footer">RUNE MIRACLE AI ✦ Ancient Nordic Wisdom</div>
+
+</div>
+
+<script>
+
+const runes=[
+
+{symbol:"ᚠ",name:"フェフ",meaning:"富・繁栄・豊かさ"},
+
+{symbol:"ᚢ",name:"ウルズ",meaning:"力・生命力・変化"},
+
+{symbol:"ᚦ",name:"スリサズ",meaning:"保護・試練・意志"},
+
+{symbol:"ᚨ",name:"アンスズ",meaning:"知恵・言葉・導き"},
+
+{symbol:"ᚱ",name:"ライド",meaning:"旅・変化・進展"},
+
+{symbol:"ᚲ",name:"ケナズ",meaning:"創造・知識・啓示"},
+
+{symbol:"ᚷ",name:"ゲボ",meaning:"贈り物・絆・パートナー"},
+
+{symbol:"ᚹ",name:"ウィニョ",meaning:"喜び・調和・幸福"},
+
+{symbol:"ᚺ",name:"ハガラズ",meaning:"試練・破壊と再生"},
+
+{symbol:"ᚾ",name:"ナウシズ",meaning:"忍耐・必要性・制約"},
+
+{symbol:"ᛁ",name:"イサ",meaning:"静止・内省・集中"},
+
+{symbol:"ᛃ",name:"イェラ",meaning:"収穫・サイクル・報酬"},
+
+{symbol:"ᛇ",name:"エイワズ",meaning:"死と再生・強さ・橋渡し"},
+
+{symbol:"ᛈ",name:"ペルスロ",meaning:"運命・秘密・可能性"},
+
+{symbol:"ᛉ",name:"アルギズ",meaning:"守護・霊的保護・本能"},
+
+{symbol:"ᛊ",name:"ソウィロ",meaning:"太陽・成功・勝利"},
+
+{symbol:"ᛏ",name:"ティワズ",meaning:"正義・勇気・犠牲"},
+
+{symbol:"ᛒ",name:"ベルカナ",meaning:"誕生・成長・育成"},
+
+{symbol:"ᛖ",name:"エワズ",meaning:"移動・信頼・協力"},
+
+{symbol:"ᛗ",name:"マナズ",meaning:"人間・自己・社会"},
+
+{symbol:"ᛚ",name:"ラグズ",meaning:"水・直感・流れ"},
+
+{symbol:"ᛜ",name:"イング",meaning:"完成・潜在力・新章"},
+
+{symbol:"ᛞ",name:"ダガズ",meaning:"夜明け・転換点・覚醒"},
+
+{symbol:"ᛟ",name:"オシラ",meaning:"故郷・遺産・つながり"}
+
+];
+
+let selectedQuestion="";
+
+function showQuestion(){
+
+  document.getElementById("intro").classList.add("hidden");
+
+  document.getElementById("question").classList.remove("hidden");
+
+}
+
+function chooseQuestion(q){
+
+  selectedQuestion=q;
+
+  document.getElementById("question").classList.add("hidden");
+
+  document.getElementById("stones").classList.remove("hidden");
+
+  document.getElementById("chosenQ").textContent="質問：" + q;
+
+  makeStones();
+
+}
+
+function makeStones(){
+
+  const grid=document.getElementById("stoneGrid");
+
+  grid.innerHTML="";
+
+  const shuffled=[...runes].sort(()=>Math.random()-0.5);
+
+  shuffled.forEach((rune)=>{
+
+    const div=document.createElement("div");
+
+    div.className="stone";
+
+    div.textContent="?";
+
+    div.onclick=()=>selectRune(div,rune);
+
+    grid.appendChild(div);
+
+  });
+
+}
+
+function selectRune(el,rune){
+
+  document.querySelectorAll(".stone").forEach(s=>s.onclick=null);
+
+  el.classList.add("selected");
+
+  el.textContent=rune.symbol;
+
+  setTimeout(()=>showResult(rune),700);
+
+}
+
+function showResult(rune){
+
+  document.getElementById("stones").classList.add("hidden");
+
+  document.getElementById("result").classList.remove("hidden");
+
+  document.getElementById("runeSymbol").textContent=rune.symbol;
+
+  document.getElementById("runeName").textContent=rune.name+"｜"+rune.meaning;
+
+  const text =
+
+`【ルーンのメッセージ】
+
+あなたが選んだルーンは「${rune.name}」です。
+
+このルーンは「${rune.meaning}」を表し、今のあなたに大切な流れを知らせています。
+
+「${selectedQuestion}」について、今は焦って答えを出すよりも、心の奥にある本音を見つめる時です。
+
+目の前の出来事は偶然ではなく、次の道へ進むための合図です。
+
+近い未来、あなたには小さな変化のきっかけが訪れます。
+
+その時に大切なのは、怖がらずに一歩だけ動くことです。
+
+大きな決断でなくても、ひとつの行動が運気を開きます。
+
+このルーンは、あなたに「自分の直感を信じなさい」と伝えています。
+
+静かな確信を持って進めば、必要な出会い、情報、助けが自然に集まってくるでしょう。`;
+
+  document.getElementById("reading").textContent=text;
+
+}
+
+function resetApp(){
+
+  selectedQuestion="";
+
+  document.getElementById("result").classList.add("hidden");
+
+  document.getElementById("intro").classList.remove("hidden");
+
+}
+
+</script>
+
+</body>
+
+</html>
