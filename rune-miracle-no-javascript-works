@@ -1,0 +1,738 @@
+import { useState, useEffect, useRef } from "react";
+
+const RUNES = [
+  { symbol: "ᚠ", name: "フェフ", meaning: "富・繁栄・豊かさ", element: "火", color: "#FFD700" },
+  { symbol: "ᚢ", name: "ウルズ", meaning: "力・生命力・変化", element: "土", color: "#8B4513" },
+  { symbol: "ᚦ", name: "スリサズ", meaning: "保護・試練・意志", element: "雷", color: "#4B0082" },
+  { symbol: "ᚨ", name: "アンスズ", meaning: "知恵・言葉・導き", element: "風", color: "#00CED1" },
+  { symbol: "ᚱ", name: "ライド", meaning: "旅・変化・進展", element: "風", color: "#228B22" },
+  { symbol: "ᚲ", name: "ケナズ", meaning: "創造・知識・啓示", element: "火", color: "#FF4500" },
+  { symbol: "ᚷ", name: "ゲボ", meaning: "贈り物・絆・パートナー", element: "水", color: "#FF69B4" },
+  { symbol: "ᚹ", name: "ウィニョ", meaning: "喜び・調和・幸福", element: "水", color: "#87CEEB" },
+  { symbol: "ᚺ", name: "ハガラズ", meaning: "試練・破壊と再生", element: "氷", color: "#B0C4DE" },
+  { symbol: "ᚾ", name: "ナウシズ", meaning: "忍耐・必要性・制約", element: "土", color: "#696969" },
+  { symbol: "ᛁ", name: "イサ", meaning: "静止・内省・集中", element: "氷", color: "#E0F0FF" },
+  { symbol: "ᛃ", name: "イェラ", meaning: "収穫・サイクル・報酬", element: "土", color: "#DAA520" },
+  { symbol: "ᛇ", name: "エイワズ", meaning: "死と再生・強さ・橋渡し", element: "木", color: "#2E8B57" },
+  { symbol: "ᛈ", name: "ペルスロ", meaning: "運命・秘密・可能性", element: "水", color: "#9370DB" },
+  { symbol: "ᛉ", name: "アルギズ", meaning: "守護・霊的保護・本能", element: "空", color: "#40E0D0" },
+  { symbol: "ᛊ", name: "ソウィロ", meaning: "太陽・成功・勝利", element: "火", color: "#FFD700" },
+  { symbol: "ᛏ", name: "ティワズ", meaning: "正義・勇気・犠牲", element: "空", color: "#DC143C" },
+  { symbol: "ᛒ", name: "ベルカナ", meaning: "誕生・成長・女性性", element: "土", color: "#90EE90" },
+  { symbol: "ᛖ", name: "エワズ", meaning: "移動・信頼・パートナー", element: "地", color: "#DEB887" },
+  { symbol: "ᛗ", name: "マナズ", meaning: "人間・自己・社会", element: "水", color: "#6495ED" },
+  { symbol: "ᛚ", name: "ラグズ", meaning: "水・直感・流れ", element: "水", color: "#1E90FF" },
+  { symbol: "ᛜ", name: "イング", meaning: "完成・潜在力・新章", element: "土", color: "#556B2F" },
+  { symbol: "ᛞ", name: "ダガズ", meaning: "夜明け・転換点・覚醒", element: "光", color: "#FF8C00" },
+  { symbol: "ᛟ", name: "オシラ", meaning: "故郷・遺産・つながり", element: "土", color: "#8B6914" },
+];
+
+const QUESTIONS = [
+  "今の恋愛について教えてください",
+  "仕事や金運の流れはどうですか？",
+  "私の人生の転換期はいつですか？",
+  "今の悩みを解決するには？",
+  "これからの運気の流れを教えて",
+  "自由に入力する...",
+];
+
+function StarField() {
+  return (
+    <div className="star-field">
+      {[...Array(80)].map((_, i) => (
+        <div
+          key={i}
+          className="star"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 4}s`,
+            animationDuration: `${2 + Math.random() * 3}s`,
+            width: `${1 + Math.random() * 2}px`,
+            height: `${1 + Math.random() * 2}px`,
+            opacity: 0.4 + Math.random() * 0.6,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function RuneStone({ rune, index, isSelected, isRevealed, onClick, disabled }) {
+  return (
+    <div
+      className={`rune-stone ${isSelected ? "selected" : ""} ${isRevealed ? "revealed" : ""} ${disabled && !isSelected ? "disabled" : ""}`}
+      onClick={() => !disabled && onClick(rune, index)}
+      style={{ "--rune-color": rune.color, animationDelay: `${index * 0.04}s` }}
+    >
+      <div className="stone-inner">
+        <div className="stone-front">
+          <div className="stone-texture" />
+          <span className="stone-glyph">?</span>
+        </div>
+        <div className="stone-back">
+          <div className="rune-glow" style={{ color: rune.color }} />
+          <span className="rune-symbol">{rune.symbol}</span>
+          <span className="rune-name">{rune.name}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function RuneDivination() {
+  const [step, setStep] = useState("intro"); // intro, question, stones, reading, result
+  const [question, setQuestion] = useState("");
+  const [customQuestion, setCustomQuestion] = useState("");
+  const [selectedRune, setSelectedRune] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [reading, setReading] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [shuffledRunes, setShuffledRunes] = useState([]);
+  const [typedText, setTypedText] = useState("");
+  const readingRef = useRef(null);
+
+  useEffect(() => {
+    const shuffled = [...RUNES].sort(() => Math.random() - 0.5);
+    setShuffledRunes(shuffled);
+  }, []);
+
+  useEffect(() => {
+    if (reading && readingRef.current) {
+      readingRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [reading]);
+
+  const handleSelectQuestion = (q) => {
+    if (q === "自由に入力する...") {
+      setQuestion("custom");
+    } else {
+      setQuestion(q);
+      setStep("stones");
+    }
+  };
+
+  const handleCustomSubmit = () => {
+    if (customQuestion.trim()) {
+      setQuestion(customQuestion.trim());
+      setStep("stones");
+    }
+  };
+
+  const handleSelectRune = async (rune, index) => {
+    if (selectedRune) return;
+    setSelectedRune(rune);
+    setSelectedIndex(index);
+
+    setTimeout(async () => {
+      setStep("reading");
+      setIsLoading(true);
+
+      const finalQuestion = question === "custom" ? customQuestion : question;
+
+      try {
+        const response = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 1000,
+            system: `あなたは古代北欧のルーン占い師です。神秘的で詩的な日本語で、選ばれたルーン文字の意味を深く読み解き、質問に対する占いの答えを伝えてください。
+
+回答形式：
+【ルーンのメッセージ】で始め、3〜4段落の流れるような占い文を書いてください。
+- 最初の段落：ルーン文字「${rune.name}（${rune.symbol}）」が持つ本質的なエネルギーと意味
+- 2段落目：質問に対するルーンのメッセージと具体的なアドバイス
+- 3段落目：近い将来の流れと注意点
+- 最後：励ましと祝福の言葉
+
+神秘的で詩的な表現を使い、読む人が感動するような占い文を書いてください。絵文字は使わず、凛とした占い師の言葉遣いで。`,
+            messages: [
+              {
+                role: "user",
+                content: `質問：「${finalQuestion}」\n\n選ばれたルーン：${rune.name}（${rune.symbol}）\n意味：${rune.meaning}\n属性：${rune.element}`,
+              },
+            ],
+          }),
+        });
+
+        const data = await response.json();
+        const text = data.content?.[0]?.text || "ルーンのメッセージを読み取れませんでした。";
+        setReading(text);
+        setIsLoading(false);
+        setStep("result");
+      } catch (err) {
+        setReading("星の声が届きませんでした。もう一度お試しください。");
+        setIsLoading(false);
+        setStep("result");
+      }
+    }, 1200);
+  };
+
+  const handleReset = () => {
+    setStep("intro");
+    setQuestion("");
+    setCustomQuestion("");
+    setSelectedRune(null);
+    setSelectedIndex(null);
+    setReading("");
+    setIsLoading(false);
+    const shuffled = [...RUNES].sort(() => Math.random() - 0.5);
+    setShuffledRunes(shuffled);
+  };
+
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap');
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+          background: #03010a;
+          min-height: 100vh;
+          font-family: 'Cormorant Garamond', serif;
+          color: #e8dcc8;
+          overflow-x: hidden;
+        }
+
+        .app {
+          min-height: 100vh;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        /* ── Star Field ── */
+        .star-field {
+          position: fixed;
+          inset: 0;
+          pointer-events: none;
+          z-index: 0;
+        }
+        .star {
+          position: absolute;
+          border-radius: 50%;
+          background: #fff;
+          animation: twinkle var(--dur, 3s) ease-in-out infinite;
+        }
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.1; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.4); }
+        }
+
+        /* ── Nebula BG ── */
+        .nebula {
+          position: fixed;
+          inset: 0;
+          z-index: 0;
+          background:
+            radial-gradient(ellipse 60% 40% at 20% 30%, rgba(80,20,120,0.35) 0%, transparent 70%),
+            radial-gradient(ellipse 50% 60% at 80% 70%, rgba(20,60,100,0.3) 0%, transparent 70%),
+            radial-gradient(ellipse 70% 50% at 50% 50%, rgba(10,5,30,0.95) 0%, transparent 100%),
+            #03010a;
+        }
+
+        /* ── Layout ── */
+        .container {
+          position: relative;
+          z-index: 1;
+          max-width: 800px;
+          width: 100%;
+          margin: 0 auto;
+          padding: 40px 20px 80px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 32px;
+        }
+
+        /* ── Header ── */
+        .header {
+          text-align: center;
+          animation: fadeDown 1s ease both;
+        }
+        .header-eye {
+          font-size: 2.8rem;
+          margin-bottom: 8px;
+          filter: drop-shadow(0 0 20px rgba(180,140,255,0.8));
+          animation: pulse 4s ease-in-out infinite;
+        }
+        @keyframes pulse {
+          0%, 100% { filter: drop-shadow(0 0 20px rgba(180,140,255,0.8)); }
+          50% { filter: drop-shadow(0 0 40px rgba(180,140,255,1)); }
+        }
+        .header-title {
+          font-family: 'Cinzel Decorative', serif;
+          font-size: clamp(1.6rem, 5vw, 2.6rem);
+          font-weight: 700;
+          background: linear-gradient(135deg, #c8a8ff, #ffe0a0, #80d4ff);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          letter-spacing: 0.08em;
+          margin-bottom: 6px;
+        }
+        .header-sub {
+          font-size: 0.95rem;
+          color: #9080b0;
+          letter-spacing: 0.3em;
+          text-transform: uppercase;
+        }
+        .divider {
+          width: 200px;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, #9060d0, transparent);
+          margin: 12px auto 0;
+        }
+
+        /* ── Cards & Panels ── */
+        .card {
+          width: 100%;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(160,120,220,0.2);
+          border-radius: 20px;
+          padding: 32px;
+          backdrop-filter: blur(10px);
+          animation: fadeUp 0.7s ease both;
+        }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+
+        .card-title {
+          font-family: 'Cinzel Decorative', serif;
+          font-size: 1.1rem;
+          color: #c8a0ff;
+          text-align: center;
+          margin-bottom: 24px;
+          letter-spacing: 0.1em;
+        }
+
+        /* ── Intro ── */
+        .intro-text {
+          font-size: 1.05rem;
+          line-height: 2;
+          color: #c0b0d8;
+          text-align: center;
+          font-style: italic;
+          margin-bottom: 28px;
+        }
+        .btn-primary {
+          display: block;
+          width: fit-content;
+          margin: 0 auto;
+          padding: 14px 48px;
+          font-family: 'Cinzel Decorative', serif;
+          font-size: 1rem;
+          color: #e8dcc8;
+          background: linear-gradient(135deg, rgba(120,60,200,0.6), rgba(60,100,200,0.6));
+          border: 1px solid rgba(180,140,255,0.5);
+          border-radius: 40px;
+          cursor: pointer;
+          letter-spacing: 0.1em;
+          transition: all 0.3s;
+          box-shadow: 0 0 30px rgba(120,60,200,0.3);
+        }
+        .btn-primary:hover {
+          background: linear-gradient(135deg, rgba(140,80,220,0.8), rgba(80,120,220,0.8));
+          box-shadow: 0 0 50px rgba(150,80,255,0.5);
+          transform: translateY(-2px);
+        }
+
+        /* ── Question Grid ── */
+        .question-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+        @media (max-width: 500px) { .question-grid { grid-template-columns: 1fr; } }
+        .question-btn {
+          padding: 14px 16px;
+          background: rgba(100,60,180,0.15);
+          border: 1px solid rgba(140,100,220,0.25);
+          border-radius: 12px;
+          color: #c8b8e8;
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 0.95rem;
+          cursor: pointer;
+          transition: all 0.25s;
+          text-align: left;
+          line-height: 1.4;
+        }
+        .question-btn:hover {
+          background: rgba(120,80,200,0.3);
+          border-color: rgba(180,140,255,0.5);
+          color: #e8dcc8;
+          transform: translateY(-2px);
+        }
+        .custom-area { margin-top: 16px; }
+        .custom-input {
+          width: 100%;
+          padding: 14px 16px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(140,100,220,0.3);
+          border-radius: 12px;
+          color: #e8dcc8;
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 1rem;
+          outline: none;
+          margin-bottom: 12px;
+          transition: border-color 0.3s;
+        }
+        .custom-input:focus { border-color: rgba(180,140,255,0.6); }
+        .custom-input::placeholder { color: #605070; }
+
+        /* ── Stone Grid ── */
+        .stones-intro { text-align:center; color:#9080b0; font-style:italic; margin-bottom:24px; font-size:0.95rem; line-height:1.8; }
+        .stone-grid {
+          display: grid;
+          grid-template-columns: repeat(6, 1fr);
+          gap: 10px;
+        }
+        @media (max-width:600px) { .stone-grid { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width:400px) { .stone-grid { grid-template-columns: repeat(3, 1fr); gap:8px; } }
+
+        .rune-stone {
+          aspect-ratio: 1;
+          cursor: pointer;
+          animation: stoneAppear 0.5s ease both;
+          transform-style: preserve-3d;
+        }
+        @keyframes stoneAppear {
+          from { opacity:0; transform: scale(0.5) rotate(-10deg); }
+          to { opacity:1; transform: scale(1) rotate(0deg); }
+        }
+        .rune-stone.disabled { cursor: default; opacity: 0.4; }
+        .stone-inner {
+          width:100%; height:100%;
+          position:relative;
+          transform-style: preserve-3d;
+          transition: transform 0.8s cubic-bezier(0.4,0,0.2,1);
+          border-radius: 50%;
+        }
+        .rune-stone.selected .stone-inner { transform: rotateY(180deg); }
+
+        .stone-front, .stone-back {
+          position:absolute; inset:0;
+          border-radius:50%;
+          backface-visibility: hidden;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+        .stone-front {
+          background: radial-gradient(circle at 35% 35%, #4a3060, #1a0d30, #0d0820);
+          border: 1px solid rgba(160,120,220,0.3);
+          box-shadow: 0 4px 20px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.08);
+        }
+        .rune-stone:not(.disabled):hover .stone-front {
+          border-color: rgba(200,160,255,0.6);
+          box-shadow: 0 4px 24px rgba(150,80,255,0.4), inset 0 1px 1px rgba(255,255,255,0.12);
+        }
+        .stone-texture {
+          position:absolute; inset:0; border-radius:50%;
+          background: radial-gradient(ellipse at 40% 35%, rgba(255,255,255,0.06), transparent 60%);
+        }
+        .stone-glyph { font-size:1.4rem; opacity:0.2; user-select:none; }
+
+        .stone-back {
+          background: radial-gradient(circle at 35% 35%, #2a1548, #120828);
+          border: 1px solid var(--rune-color);
+          box-shadow: 0 0 20px color-mix(in srgb, var(--rune-color) 40%, transparent), inset 0 0 15px color-mix(in srgb, var(--rune-color) 10%, transparent);
+          transform: rotateY(180deg);
+        }
+        .rune-symbol {
+          font-size: 1.5rem;
+          color: var(--rune-color);
+          text-shadow: 0 0 12px var(--rune-color);
+          font-weight: 700;
+        }
+        .rune-name { font-size: 0.45rem; color: rgba(255,255,255,0.6); margin-top:2px; letter-spacing:0.05em; }
+
+        /* ── Loading ── */
+        .loading-area {
+          text-align: center;
+          padding: 40px 0;
+          animation: fadeUp 0.5s ease both;
+        }
+        .crystal-ball {
+          font-size: 5rem;
+          margin-bottom: 20px;
+          animation: float 3s ease-in-out infinite;
+          filter: drop-shadow(0 0 30px rgba(160,100,255,0.8));
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-12px); }
+        }
+        .loading-rune {
+          font-size: 3rem;
+          color: var(--rc);
+          text-shadow: 0 0 20px var(--rc);
+          animation: spin 2s ease-in-out infinite alternate;
+        }
+        @keyframes spin {
+          from { transform: rotate(-15deg) scale(0.9); }
+          to { transform: rotate(15deg) scale(1.1); }
+        }
+        .loading-text {
+          font-size: 1rem;
+          color: #9080b0;
+          font-style: italic;
+          margin-top: 16px;
+          letter-spacing: 0.1em;
+          animation: breathe 2s ease-in-out infinite;
+        }
+        @keyframes breathe { 0%,100%{opacity:0.5} 50%{opacity:1} }
+
+        /* ── Reading Result ── */
+        .result-header {
+          text-align:center;
+          margin-bottom: 28px;
+        }
+        .result-rune-symbol {
+          font-size: 4rem;
+          line-height:1;
+          margin-bottom: 8px;
+          filter: drop-shadow(0 0 20px var(--rc));
+          animation: glowPulse 3s ease-in-out infinite;
+        }
+        @keyframes glowPulse {
+          0%,100% { filter: drop-shadow(0 0 20px var(--rc)); }
+          50% { filter: drop-shadow(0 0 40px var(--rc)) drop-shadow(0 0 60px var(--rc)); }
+        }
+        .result-rune-name {
+          font-family:'Cinzel Decorative', serif;
+          font-size:1.3rem;
+          color: var(--rc);
+          letter-spacing:0.1em;
+        }
+        .result-rune-meaning {
+          font-size:0.9rem;
+          color:#8070a0;
+          letter-spacing:0.2em;
+          margin-top:4px;
+        }
+        .result-divider {
+          width:120px; height:1px;
+          background: linear-gradient(90deg, transparent, var(--rc), transparent);
+          margin: 20px auto;
+        }
+
+        .reading-text {
+          font-size: 1.05rem;
+          line-height: 2;
+          color: #d4c8e0;
+          white-space: pre-wrap;
+          font-style: italic;
+        }
+        .reading-text strong, .reading-text b { color: #e8dcc8; font-style: normal; }
+
+        .share-section {
+          text-align:center;
+          margin-top: 32px;
+          padding-top: 28px;
+          border-top: 1px solid rgba(120,80,200,0.2);
+        }
+        .share-text { font-size:0.85rem; color:#706080; margin-bottom:16px; letter-spacing:0.1em; }
+        .share-buttons { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+        .share-btn {
+          padding: 10px 24px;
+          border-radius: 30px;
+          border: 1px solid;
+          font-family:'Cormorant Garamond', serif;
+          font-size:0.9rem;
+          cursor:pointer;
+          transition: all 0.3s;
+        }
+        .share-btn.twitter { border-color:#1d9bf0; color:#1d9bf0; background:rgba(29,155,240,0.08); }
+        .share-btn.twitter:hover { background:rgba(29,155,240,0.2); }
+        .share-btn.line { border-color:#06c755; color:#06c755; background:rgba(6,199,85,0.08); }
+        .share-btn.line:hover { background:rgba(6,199,85,0.2); }
+        .share-btn.instagram { border-color:#e1306c; color:#e1306c; background:rgba(225,48,108,0.08); }
+        .share-btn.instagram:hover { background:rgba(225,48,108,0.2); }
+
+        .btn-reset {
+          display:block; width:fit-content; margin: 24px auto 0;
+          padding:12px 36px;
+          font-family:'Cinzel Decorative', serif; font-size:0.85rem;
+          color:#a090c0; background:transparent;
+          border:1px solid rgba(120,80,200,0.3); border-radius:30px;
+          cursor:pointer; transition:all 0.3s; letter-spacing:0.1em;
+        }
+        .btn-reset:hover { border-color:rgba(180,140,255,0.5); color:#c8b8e8; }
+
+        /* ── Footer ── */
+        .footer { text-align:center; color:#403050; font-size:0.75rem; letter-spacing:0.2em; margin-top:20px; }
+
+        /* ── Selected question display ── */
+        .selected-question {
+          text-align:center; font-style:italic; color:#9080b0; font-size:0.9rem;
+          background: rgba(100,60,180,0.1); border-radius:10px; padding:12px 20px;
+          border: 1px solid rgba(120,80,200,0.15);
+        }
+      `}</style>
+
+      <div className="app">
+        <div className="nebula" />
+        <StarField />
+
+        <div className="container">
+          {/* Header */}
+          <div className="header">
+            <div className="header-eye">🔮</div>
+            <h1 className="header-title">RUNE ORACLE</h1>
+            <p className="header-sub">古代ルーン文字の神託</p>
+            <div className="divider" />
+          </div>
+
+          {/* INTRO */}
+          {step === "intro" && (
+            <div className="card">
+              <p className="intro-text">
+                古代北欧の神々が刻んだルーン文字が、<br />
+                あなたの問いに答えます。<br /><br />
+                心を静め、問いかけを定め、<br />
+                石の中から一つを選んでください。<br />
+                ルーンはあなたの魂の声を聴いています。
+              </p>
+              <button className="btn-primary" onClick={() => setStep("question")}>
+                ✦ 占いを始める ✦
+              </button>
+            </div>
+          )}
+
+          {/* QUESTION */}
+          {step === "question" && (
+            <div className="card">
+              <h2 className="card-title">✦ 何を占いますか？ ✦</h2>
+              <div className="question-grid">
+                {QUESTIONS.slice(0, 5).map((q) => (
+                  <button key={q} className="question-btn" onClick={() => handleSelectQuestion(q)}>
+                    {q}
+                  </button>
+                ))}
+                <button className="question-btn" onClick={() => handleSelectQuestion("自由に入力する...")}>
+                  ✍ 自由に入力する
+                </button>
+              </div>
+              {question === "custom" && (
+                <div className="custom-area">
+                  <textarea
+                    className="custom-input"
+                    rows={3}
+                    placeholder="あなたの問いを入力してください..."
+                    value={customQuestion}
+                    onChange={(e) => setCustomQuestion(e.target.value)}
+                  />
+                  <button className="btn-primary" onClick={handleCustomSubmit}>
+                    ✦ 石を選ぶ ✦
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* STONES */}
+          {(step === "stones" || step === "reading") && shuffledRunes.length > 0 && (
+            <div className="card">
+              <div className="selected-question">
+                「{question === "custom" ? customQuestion : question}」
+              </div>
+              <br />
+              <p className="stones-intro">
+                石に手を近づけ、引き寄せられる一つを選んでください。<br />
+                直感を信じてください。
+              </p>
+              <div className="stone-grid">
+                {shuffledRunes.map((rune, i) => (
+                  <RuneStone
+                    key={rune.name}
+                    rune={rune}
+                    index={i}
+                    isSelected={selectedIndex === i}
+                    isRevealed={selectedIndex === i}
+                    onClick={handleSelectRune}
+                    disabled={selectedRune !== null && selectedIndex !== i}
+                  />
+                ))}
+              </div>
+
+              {step === "reading" && (
+                <div className="loading-area">
+                  <div className="crystal-ball">🔮</div>
+                  {selectedRune && (
+                    <div
+                      className="loading-rune"
+                      style={{ "--rc": selectedRune.color }}
+                    >
+                      {selectedRune.symbol}
+                    </div>
+                  )}
+                  <p className="loading-text">ルーンの声を聴いています…</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* RESULT */}
+          {step === "result" && selectedRune && (
+            <div className="card" ref={readingRef} style={{ "--rc": selectedRune.color }}>
+              <div className="result-header">
+                <div className="result-rune-symbol">{selectedRune.symbol}</div>
+                <div className="result-rune-name">{selectedRune.name}</div>
+                <div className="result-rune-meaning">{selectedRune.meaning} ｜ {selectedRune.element}</div>
+                <div className="result-divider" />
+              </div>
+
+              <div className="reading-text">{reading}</div>
+
+              <div className="share-section">
+                <p className="share-text">✦ シェアして友人にも届けよう ✦</p>
+                <div className="share-buttons">
+                  <button
+                    className="share-btn twitter"
+                    onClick={() => {
+                      const q = question === "custom" ? customQuestion : question;
+                      const text = `🔮 ルーン占い結果\n「${q}」\n選ばれたルーン：${selectedRune.symbol} ${selectedRune.name}\n#ルーン占い #RUNEORACLE`;
+                      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`);
+                    }}
+                  >
+                    ✕ Xでシェア
+                  </button>
+                  <button
+                    className="share-btn line"
+                    onClick={() => {
+                      const q = question === "custom" ? customQuestion : question;
+                      const text = `🔮 ルーン占い「${q}」→ ${selectedRune.symbol} ${selectedRune.name}`;
+                      window.open(`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`);
+                    }}
+                  >
+                    LINE
+                  </button>
+                  <button
+                    className="share-btn instagram"
+                    onClick={() => alert("スクリーンショットを撮ってInstagramにシェアしてね✨ #ルーン占い")}
+                  >
+                    📸 Instagram
+                  </button>
+                </div>
+              </div>
+
+              <button className="btn-reset" onClick={handleReset}>
+                ↺ もう一度占う
+              </button>
+            </div>
+          )}
+
+          <div className="footer">
+            RUNE ORACLE ✦ Ancient Nordic Wisdom ✦ AI Powered
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
