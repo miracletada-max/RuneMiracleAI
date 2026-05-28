@@ -401,7 +401,69 @@ function resetApp(){
 }
 
 </script>
+<section class="insight-box">
 
+  <h2>🌟 気づき・良い点発見コーナー</h2>
+
+  <p>
+
+    あなたの中にある良い点、
+
+    今日の気づき、
+
+    隠れた才能を発見します。
+
+  </p>
+
+  <button onclick="showInsight()">
+
+    気づき・良い点を発見する
+
+  </button>
+
+  <div id="insightResult" style="display:none; margin-top:20px;">
+
+    <h3>✨ 今日の気づき</h3>
+
+    <p id="insightText"></p>
+
+  </div>
+
+</section>
+
+<script>
+
+function showInsight(){
+
+const messages = [
+
+"あなたは思っている以上に頑張っています。小さな努力が未来を変えます。",
+
+"今のあなたには静かな強さがあります。焦らず進めば大丈夫です。",
+
+"人に優しくできる心が、あなたの大きな魅力です。",
+
+"今日は小さな良い変化に気づく日です。",
+
+"あなたにはまだ開花していない才能があります。"
+
+];
+
+const random =
+
+messages[Math.floor(Math.random() * messages.length)];
+
+document.getElementById("insightText").innerText
+
+= random;
+
+document.getElementById("insightResult")
+
+.style.display = "block";
+
+}
+
+</script
 </body>
 
 </html>
