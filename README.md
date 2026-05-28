@@ -1,2 +1,645 @@
-# RuneMiracleAI
-AIルーン占いアプリ開発用
+index.html<!DOCTYPE html>
+<html lang="ja" style="background:#050a14;">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>🔮 RUNE MIRACLE</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600&family=Noto+Serif+JP:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html{background:#050a14;}
+body{background:#050a14;font-family:'Noto Serif JP',serif;color:#e8dcc8;min-height:100vh;overflow-x:hidden;position:relative;}
+@keyframes tw{from{opacity:.1;transform:scale(.8);}to{opacity:.8;transform:scale(1.2);}}
+@keyframes up{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fi{from{opacity:0;}to{opacity:1;}}
+@keyframes fl{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+@keyframes sh{0%{background-position:-200% center;}100%{background-position:200% center;}}
+@keyframes gl{0%,100%{box-shadow:0 0 14px rgba(200,169,110,.22),0 0 28px rgba(200,169,110,.07);}50%{box-shadow:0 0 26px rgba(200,169,110,.46),0 0 50px rgba(200,169,110,.15);}}
+@keyframes rl{0%,100%{box-shadow:0 0 14px rgba(200,50,40,.18),0 0 28px rgba(160,20,10,.06);}50%{box-shadow:0 0 26px rgba(200,50,40,.4),0 0 50px rgba(160,20,10,.13);}}
+@keyframes gr{0%,100%{box-shadow:0 0 14px rgba(60,200,80,.18),0 0 28px rgba(30,150,50,.06);}50%{box-shadow:0 0 26px rgba(60,200,80,.4),0 0 50px rgba(30,150,50,.13);}}
+@keyframes od{0%,100%{transform:translate(0,0);}33%{transform:translate(22px,-16px);}66%{transform:translate(-16px,12px);}}
+@keyframes hl{0%,100%{opacity:.5;}50%{opacity:1;}}
+@keyframes sp{0%{transform:scale(0);opacity:0;}65%{transform:scale(1.3);}100%{transform:scale(1);opacity:1;}}
+.orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;animation:od 13s ease-in-out infinite;}
+.scr{animation:up .5s ease forwards;}
+.stone{cursor:pointer;transition:transform .18s,box-shadow .18s;border-radius:10px;padding:12px 4px;text-align:center;}
+.stone:active{transform:scale(.95);}
+.stone:hover{transform:scale(1.1) translateY(-4px);}
+.cc{transition:transform .17s;cursor:pointer;}
+.cc:hover{transform:translateY(-3px);}
+.tc{cursor:pointer;transition:transform .17s,border-color .18s;border-radius:13px;padding:14px 12px;}
+.tc:hover{transform:translateY(-3px);}
+.btn{font-family:'Cinzel',serif;letter-spacing:.1em;border-radius:50px;cursor:pointer;border:none;transition:filter .18s;padding:11px 24px;font-size:13px;}
+.btn:hover{filter:brightness(1.13);}
+.btn:active{filter:brightness(.9);}
+textarea:focus{outline:none;}
+.page{display:none;position:relative;z-index:1;max-width:680px;margin:0 auto;padding:0 20px 80px;background:transparent;}
+.page.active{display:block;}
+#stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;background:#050a14;}
+.star{position:absolute;border-radius:50%;background:#fff;opacity:.42;}
+</style>
+</head>
+<body style="background:#050a14 !important;min-height:100vh;">
+
+<!-- 星 -->
+<div id="stars"></div>
+
+<!-- オーブ -->
+<div class="orb" style="width:380px;height:380px;background:rgba(100,60,180,.1);top:8%;left:58%;animation-delay:0s;"></div>
+<div class="orb" style="width:280px;height:280px;background:rgba(200,110,60,.07);top:52%;left:5%;animation-delay:5s;"></div>
+<div class="orb" style="width:240px;height:240px;background:rgba(40,100,200,.07);top:70%;left:68%;animation-delay:9s;"></div>
+
+<!-- ヘッダー -->
+<header style="text-align:center;padding:40px 0 24px;position:relative;z-index:1;background:transparent;">
+  <div style="font-size:38px;margin-bottom:10px;animation:fl 4s ease-in-out infinite;">🔮</div>
+  <h1 style="font-family:'Cinzel Decorative',cursive;font-size:clamp(20px,5vw,30px);background:linear-gradient(135deg,#e8c97a,#f0e4b0,#c8a96e);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:sh 4s linear infinite;letter-spacing:.06em;margin-bottom:5px;">RUNE MIRACLE</h1>
+  <p style="font-family:'Cinzel',serif;font-size:11px;color:#7a6a50;letter-spacing:.2em;">24の石と8つの運命</p>
+  <div id="planBadge" style="display:none;margin-top:12px;">
+    <span id="planBadgeText" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border-radius:50px;padding:5px 14px;font-size:11px;font-family:'Cinzel',serif;letter-spacing:.08em;"></span>
+    <button onclick="showPage('plan')" style="background:none;border:none;color:rgba(160,140,110,.6);font-size:10px;cursor:pointer;font-family:'Cinzel',serif;margin-left:6px;">変更</button>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════
+     プラン選択ページ
+════════════════════════════════════════ -->
+<div id="page-plan" class="page active scr">
+  <p style="text-align:center;color:#a09880;font-size:14px;line-height:2;margin-bottom:28px;">
+    古代ゲルマンの叡智、24のルーン文字があなたを照らす。<br>まずご利用コースをお選びください。
+  </p>
+  <div style="font-size:10px;font-family:'Cinzel',serif;letter-spacing:.2em;color:#3a3428;text-align:center;margin-bottom:16px;">✦ コースを選んでください ✦</div>
+
+  <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:30px;">
+
+    <!-- ¥500 -->
+    <div class="cc" onclick="selectPlan('basic')" style="background:linear-gradient(145deg,rgba(14,11,26,.98),rgba(8,6,16,.99));border:2px solid rgba(200,169,110,.4);border-radius:18px;padding:20px;position:relative;overflow:hidden;animation:gl 5s ease-in-out infinite;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="text-align:center;min-width:70px;">
+          <div style="font-size:10px;color:#c8a96e;letter-spacing:.1em;font-family:'Cinzel',serif;margin-bottom:2px;">1回</div>
+          <div style="font-size:28px;font-weight:700;color:#d4b060;letter-spacing:.02em;">¥500</div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-family:'Cinzel',serif;font-size:15px;color:#e8dcc8;margin-bottom:4px;letter-spacing:.04em;">今日の運勢</div>
+          <div style="font-size:11px;color:rgba(190,170,140,.75);margin-bottom:10px;">毎日の短い運勢鑑定</div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;align-items:center;gap:6px;"><span style="color:#a0ffb8;font-size:13px;font-weight:700;">✓</span><span style="font-size:12px;color:rgba(220,240,220,.9);">🔮 通常占い（8テーマ）</span></div>
+            <div style="display:flex;align-items:center;gap:6px;"><span style="color:rgba(180,120,100,.45);font-size:13px;">✗</span><span style="font-size:12px;color:rgba(160,140,120,.4);text-decoration:line-through;">🪞 成長の鏡コーナー</span></div>
+            <div style="display:flex;align-items:center;gap:6px;"><span style="color:rgba(180,120,100,.45);font-size:13px;">✗</span><span style="font-size:12px;color:rgba(160,140,120,.4);text-decoration:line-through;">⭐ 良い点発見コーナー</span></div>
+          </div>
+        </div>
+        <div style="font-size:18px;color:#c8a96e;opacity:.7;">›</div>
+      </div>
+    </div>
+
+    <!-- ¥2,000 -->
+    <div class="cc" onclick="selectPlan('monthly')" style="background:linear-gradient(145deg,rgba(50,30,100,.55),rgba(30,15,70,.7));border:2px solid rgba(157,111,255,.6);border-radius:18px;padding:20px;position:relative;overflow:hidden;animation:gl 4s ease-in-out infinite;">
+      <div style="position:absolute;top:0;right:0;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-size:10px;font-family:'Cinzel',serif;letter-spacing:.14em;padding:6px 16px;border-bottom-left-radius:12px;font-weight:600;">★ POPULAR</div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="text-align:center;min-width:70px;">
+          <div style="font-size:10px;color:#9d6fff;letter-spacing:.1em;font-family:'Cinzel',serif;margin-bottom:2px;">月額</div>
+          <div style="font-size:28px;font-weight:700;color:#b388ff;letter-spacing:.02em;">¥2,000</div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-family:'Cinzel',serif;font-size:15px;color:#e8dcc8;margin-bottom:4px;letter-spacing:.04em;">月額プラン</div>
+          <div style="font-size:11px;color:rgba(190,170,140,.75);margin-bottom:10px;">相性占い・テーマ占いを無制限</div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;align-items:center;gap:6px;"><span style="color:#a0ffb8;font-size:13px;font-weight:700;">✓</span><span style="font-size:12px;color:rgba(220,240,220,.9);">🔮 通常占い（8テーマ）</span></div>
+            <div style="display:flex;align-items:center;gap:6px;"><span style="color:#a0ffb8;font-size:13px;font-weight:700;">✓</span><span style="font-size:12px;color:rgba(220,240,220,.9);">🪞 成長の鏡コーナー</span></div>
+            <div style="display:flex;align-items:center;gap:6px;"><span style="color:#a0ffb8;font-size:13px;font-weight:700;">✓</span><span style="font-size:12px;color:rgba(220,240,220,.9);">⭐ 良い点発見コーナー</span></div>
+          </div>
+        </div>
+        <div style="font-size:18px;color:#9d6fff;opacity:.7;">›</div>
+      </div>
+    </div>
+
+    <!-- ¥3,000 -->
+    <div class="cc" onclick="selectPlan('premium')" style="background:linear-gradient(145deg,rgba(40,10,10,.98),rgba(20,5,5,.99));border:2px solid rgba(232,124,124,.5);border-radius:18px;padding:20px;position:relative;overflow:hidden;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="text-align:center;min-width:70px;">
+          <div style="font-size:10px;color:#e87c7c;letter-spacing:.1em;font-family:'Cinzel',serif;margin-bottom:2px;">1回</div>
+          <div style="font-size:28px;font-weight:700;color:#f08080;letter-spacing:.02em;">¥3,000</div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-family:'Cinzel',serif;font-size:15px;color:#e8dcc8;margin-bottom:4px;letter-spacing:.04em;">プレミアム鑑定</div>
+          <div style="font-size:11px;color:rgba(190,170,140,.75);margin-bottom:10px;">長文・深掘り鑑定</div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;align-items:center;gap:6px;"><span style="color:#a0ffb8;font-size:13px;font-weight:700;">✓</span><span style="font-size:12px;color:rgba(220,240,220,.9);">🔮 通常占い（8テーマ）</span></div>
+            <div style="display:flex;align-items:center;gap:6px;"><span style="color:#a0ffb8;font-size:13px;font-weight:700;">✓</span><span style="font-size:12px;color:rgba(220,240,220,.9);">🪞 成長の鏡コーナー</span></div>
+            <div style="display:flex;align-items:center;gap:6px;"><span style="color:#a0ffb8;font-size:13px;font-weight:700;">✓</span><span style="font-size:12px;color:rgba(220,240,220,.9);">⭐ 良い点発見コーナー</span></div>
+          </div>
+        </div>
+        <div style="font-size:18px;color:#e87c7c;opacity:.7;">›</div>
+      </div>
+    </div>
+
+  </div>
+  <p style="text-align:center;font-size:11px;color:#2a2420;">※ 実際の決済にはApple課金・Stripe等の設定が別途必要です。</p>
+</div>
+
+<!-- ═══════════════════════════════════════
+     ホームページ
+════════════════════════════════════════ -->
+<div id="page-home" class="page scr">
+  <p style="text-align:center;color:#a09880;font-size:14px;line-height:2;margin-bottom:30px;">
+    直感の赴くままに石を選び、宇宙の声に耳を傾けてください。
+  </p>
+  <div style="font-size:10px;font-family:'Cinzel',serif;letter-spacing:.2em;color:#3a3428;text-align:center;margin-bottom:14px;" id="homeCornerLabel">✦ 鑑定コーナー ✦</div>
+
+  <!-- 通常占い -->
+  <div class="cc" onclick="showPage('themes')" style="background:linear-gradient(135deg,rgba(18,14,30,.96),rgba(10,8,20,.98));border:1px solid rgba(200,169,110,.22);border-radius:18px;padding:20px 18px;margin-bottom:12px;animation:gl 5s ease-in-out infinite;">
+    <div style="display:flex;gap:15px;align-items:center;">
+      <div style="font-size:32px;animation:fl 4s ease-in-out infinite;flex-shrink:0;">🔮</div>
+      <div style="flex:1;">
+        <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:.2em;color:rgba(200,169,110,.55);margin-bottom:3px;">FORTUNE TELLING</div>
+        <h3 style="font-family:'Cinzel Decorative',cursive;font-size:clamp(14px,3.5vw,17px);background:linear-gradient(135deg,#e8c97a,#c8a96e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.04em;margin-bottom:7px;line-height:1.3;">通常占い</h3>
+        <p style="font-size:12px;color:rgba(175,155,125,.68);line-height:1.85;margin-bottom:12px;">8つのテーマ×24の石で運勢・愛・仕事・未来を鑑定します。</p>
+        <button class="btn" style="background:linear-gradient(135deg,#c8a96e,#9d7a3a);color:#1a1205;font-weight:600;box-shadow:0 4px 18px rgba(200,169,110,.22);">占いを始める →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- プレミアム2コーナー -->
+  <div id="premiumCorners" style="display:none;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+      <!-- 成長の鏡 -->
+      <div class="cc" onclick="startCorner('weakness')" style="background:linear-gradient(145deg,rgba(28,4,4,.97),rgba(16,2,2,.99));border:1px solid rgba(200,50,40,.26);border-radius:18px;padding:18px 15px;position:relative;overflow:hidden;animation:rl 4.5s ease-in-out infinite;">
+        <div style="position:absolute;right:-8px;bottom:-8px;font-size:80px;color:rgba(200,40,40,.05);font-family:serif;pointer-events:none;">ᚺ</div>
+        <div style="font-size:24px;margin-bottom:8px;animation:fl 3.5s ease-in-out infinite;">🪞</div>
+        <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:.17em;color:rgba(210,70,50,.65);margin-bottom:3px;">MIRROR OF GROWTH</div>
+        <h3 style="font-family:'Cinzel',serif;font-size:clamp(12px,3vw,15px);background:linear-gradient(135deg,#ff6b4a,#ff9a3c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.04em;margin-bottom:7px;line-height:1.4;">成長の鏡<br>コーナー</h3>
+        <p style="font-size:11px;color:rgba(205,145,125,.58);line-height:1.8;margin-bottom:13px;">次のステージへのヒントを優しく照らします。</p>
+        <button class="btn" style="background:linear-gradient(135deg,#b02a1a,#7a1010);color:#fff0ee;font-weight:600;padding:10px 14px;width:100%;font-size:12px;box-shadow:0 3px 14px rgba(160,30,20,.24);">🪞 気づきのヒントを得る</button>
+      </div>
+      <!-- 良い点発見 -->
+      <div class="cc" onclick="startCorner('strength')" style="background:linear-gradient(145deg,rgba(3,18,6,.97),rgba(2,10,4,.99));border:1px solid rgba(60,190,80,.24);border-radius:18px;padding:18px 15px;position:relative;overflow:hidden;animation:gr 4.5s ease-in-out infinite;">
+        <div style="position:absolute;right:-8px;bottom:-8px;font-size:80px;color:rgba(50,200,70,.05);font-family:serif;pointer-events:none;">ᛊ</div>
+        <div style="font-size:24px;margin-bottom:8px;animation:fl 3.5s .8s ease-in-out infinite;">⭐</div>
+        <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:.17em;color:rgba(70,200,90,.62);margin-bottom:3px;">LIGHT OF TRUTH</div>
+        <h3 style="font-family:'Cinzel',serif;font-size:clamp(12px,3vw,15px);background:linear-gradient(135deg,#7dffaa,#ffe066);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.04em;margin-bottom:7px;line-height:1.4;">良い点発見<br>コーナー</h3>
+        <p style="font-size:11px;color:rgba(130,215,145,.58);line-height:1.8;margin-bottom:13px;">ルーンがあなたの眠れる才能・真の強みを発見します。</p>
+        <button class="btn" style="background:linear-gradient(135deg,#1a7a30,#0f5520);color:#e0ffe8;font-weight:600;padding:10px 14px;width:100%;font-size:12px;box-shadow:0 3px 14px rgba(30,150,50,.22);">⭐ 強みを知る</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ロック表示（¥500） -->
+  <div id="lockedCorners" style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:20px 18px;margin-bottom:20px;text-align:center;">
+    <div style="font-size:28px;margin-bottom:10px;opacity:.35;">🔒</div>
+    <div style="font-family:'Cinzel',serif;font-size:13px;color:rgba(200,180,140,.5);letter-spacing:.08em;margin-bottom:8px;">成長の鏡 / 良い点発見コーナー</div>
+    <p style="font-size:12px;color:rgba(160,140,110,.45);line-height:1.8;margin-bottom:14px;">この機能は月額¥2,000・プレミアム¥3,000コースでご利用いただけます。</p>
+    <button class="btn" onclick="showPage('plan')" style="background:linear-gradient(135deg,#9d6fff,#6a3fbf);color:#fff;font-size:12px;font-weight:600;padding:10px 22px;box-shadow:0 3px 14px rgba(157,111,255,.3);">コースをアップグレード ↑</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     テーマ選択ページ
+════════════════════════════════════════ -->
+<div id="page-themes" class="page scr">
+  <h2 style="font-family:'Cinzel',serif;text-align:center;font-size:17px;color:#c8a96e;letter-spacing:.12em;margin-bottom:6px;">テーマを選んでください</h2>
+  <p style="text-align:center;font-size:13px;color:#6a6050;margin-bottom:22px;">8つの扉からひとつを開いてください</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;" id="themeGrid"></div>
+  <div style="text-align:center;">
+    <button class="btn" onclick="showPage('home')" style="background:none;border:1px solid rgba(255,255,255,.1);color:#5a5040;">← 戻る</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     自由入力ページ
+════════════════════════════════════════ -->
+<div id="page-custom" class="page scr">
+  <h2 style="font-family:'Cinzel',serif;text-align:center;font-size:17px;color:#c8a96e;letter-spacing:.12em;margin-bottom:5px;">✍️ 自由入力</h2>
+  <p style="text-align:center;font-size:13px;color:#6a6050;margin-bottom:18px;">あなたの問いを書いてください</p>
+  <textarea id="customInput" placeholder="例：今の仕事を続けるべきかどうか迷っています。" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(200,169,110,.24);border-radius:12px;color:#e8dcc8;font-family:'Noto Serif JP',serif;font-size:14px;padding:14px;resize:vertical;min-height:90px;line-height:1.85;margin-bottom:16px;"></textarea>
+  <div style="display:flex;gap:10px;justify-content:center;">
+    <button class="btn" onclick="showPage('themes')" style="background:none;border:1px solid rgba(255,255,255,.1);color:#5a5040;">← 戻る</button>
+    <button class="btn" onclick="showPage('stones')" style="background:linear-gradient(135deg,#c8a96e,#9d7a3a);color:#1a1205;font-weight:600;">石を選ぶ →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     石選択ページ
+════════════════════════════════════════ -->
+<div id="page-stones" class="page scr">
+  <h2 id="stoneHeader" style="font-family:'Cinzel',serif;text-align:center;font-size:16px;letter-spacing:.12em;margin-bottom:6px;color:#c8a96e;"></h2>
+  <p id="stoneSub" style="text-align:center;font-size:13px;color:rgba(160,140,120,.6);margin-bottom:18px;"></p>
+  <div id="hoverInfo" style="text-align:center;height:22px;margin-bottom:10px;font-family:'Cinzel',serif;font-size:12px;animation:hl 1.5s infinite;"></div>
+  <div id="stoneGrid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:26px;"></div>
+  <div style="text-align:center;">
+    <button id="stoneBackBtn" class="btn" style="background:none;border:1px solid rgba(255,255,255,.1);color:#5a5040;">← 戻る</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     鑑定結果ページ
+════════════════════════════════════════ -->
+<div id="page-reading" class="page scr">
+
+  <!-- ルーン表示 -->
+  <div style="text-align:center;margin-bottom:26px;">
+    <div style="animation:fl 4s ease-in-out infinite;">
+      <div id="readingRuneSymbol" style="font-size:72px;font-family:serif;margin-bottom:10px;"></div>
+      <div id="readingRuneName" style="font-family:'Cinzel',serif;font-size:16px;letter-spacing:.12em;margin-bottom:3px;"></div>
+      <div id="readingRuneMeaning" style="font-size:12px;color:rgba(150,125,95,.5);"></div>
+    </div>
+  </div>
+
+  <!-- テーマバッジ -->
+  <div id="themeBadge" style="text-align:center;margin-bottom:16px;display:none;">
+    <span id="themeBadgeText" style="display:inline-block;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.22);border-radius:50px;padding:5px 16px;font-size:12px;color:#c8a96e;font-family:'Cinzel',serif;letter-spacing:.07em;"></span>
+  </div>
+
+  <!-- 鑑定カード -->
+  <div id="readingCard" style="border-radius:20px;padding:26px 22px;margin-bottom:20px;position:relative;overflow:hidden;opacity:0;transition:opacity .7s ease;">
+    <div id="cardBgRune" style="position:absolute;right:-10px;bottom:-12px;font-size:90px;font-family:serif;pointer-events:none;user-select:none;"></div>
+    <div id="cardTopLine" style="position:absolute;top:0;left:0;right:0;height:1px;"></div>
+    <div id="cardHeader" style="margin-bottom:13px;display:none;">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:13px;">
+        <span id="cardIcon" style="font-size:18px;"></span>
+        <div>
+          <div id="cardSubtitle" style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:.2em;margin-bottom:1px;"></div>
+          <div id="cardTitle" style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:.05em;"></div>
+        </div>
+      </div>
+      <div id="cardDivider" style="height:1px;margin-bottom:14px;"></div>
+    </div>
+    <p id="readingText" style="font-size:15px;line-height:2.2;white-space:pre-wrap;animation:fi .8s ease forwards;"></p>
+    <div id="cardFooter" style="margin-top:16px;padding-top:12px;text-align:center;display:none;">
+      <p id="cardFooterText" style="font-size:11px;letter-spacing:.07em;font-style:italic;"></p>
+    </div>
+  </div>
+
+  <!-- 相互誘導バナー -->
+  <div id="crossBanner" style="display:none;border-radius:13px;padding:14px 16px;margin-bottom:14px;text-align:center;animation:fi .6s ease forwards;">
+    <p id="crossText" style="font-size:12px;line-height:1.8;margin-bottom:9px;"></p>
+    <button id="crossBtn" class="btn" style="font-size:12px;font-weight:600;padding:8px 20px;"></button>
+  </div>
+
+  <!-- ボタン -->
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+    <button id="retryBtn" class="btn" onclick="retryStone()" style="background:rgba(255,255,255,.04);font-size:13px;padding:10px 18px;">別の石を選ぶ</button>
+    <button id="homeBtn" class="btn" onclick="goHome()" style="font-size:13px;font-weight:600;padding:10px 18px;">最初から</button>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════
+     JavaScript
+════════════════════════════════════════ -->
+<script>
+// ─── データ ────────────────────────────────────────────────────────
+const RUNES = [
+  {symbol:"ᚠ",name:"フェフ",meaning:"富・始まり・火",
+   normal:"豊かさと新しい始まりのエネルギーがあなたを包んでいます。今は行動を起こすのに最適な時期です。才能や財を積極的に動かすことで流れが生まれます。ただし得たものへの執着は逆流を招きます。循環させることが豊かさの本質。今日は自分の価値を信じ、一歩を踏み出してください。直感が指し示す方向に、確かな豊かさの種があります。",
+   weakness:"「もっと欲しい」という気持ちが強く働くとき、今すでに手にしている豊かさが見えにくくなります。次のステージへ進むヒントは「手放す勇気」の中にあります。執着を少しだけゆるめると、新しい流れが自然と入ってくるでしょう。持っているものへの感謝が、さらなる豊かさへの扉を開きます。",
+   strength:"あなたには物事を価値あるものへと育てる天性の才能があります。何もないところから豊かさを生み出す力、そして周囲にも恵みをもたらす循環のエネルギーを持っています。始まりを感じ取る直感も鋭く、新しい挑戦において誰よりも力を発揮します。その財を生む力は、あなた自身の努力と情熱から生まれる本物の輝きです。"},
+  {symbol:"ᚢ",name:"ウルズ",meaning:"力・野性・変容",
+   normal:"内なる原始の力が目覚めようとしています。変容の時期が近づいており、古い殻を破る勇気が求められています。体を動かし自然と触れることでエネルギーが活性化します。直感に従って動くことで、予想以上の変化が生まれるでしょう。今こそ野性の感覚を信頼してください。あなたの中の力強さが、道を切り開きます。",
+   weakness:"あなたの中にある強いエネルギーは、方向を定めることでより大きな力になります。今のステージでの気づきは「間合いを知ること」。少し立ち止まって呼吸を整えるだけで、そのパワーは驚くほど精度を増します。強さはすでにある。あとは使いどころを磨くだけです。",
+   strength:"あなたには並外れた生命力と回復力があります。どんな逆境からでも立ち上がり、変容を遂げる力は本物です。物事の本質を野生の本能で見抜く力があり、複雑な状況でも迷わず核心をつかみます。その原始的なパワーは周囲を鼓舞し動かす源泉。誰もが諦めた場面でも、あなたの力は最後まで燃え続けます。"},
+  {symbol:"ᚦ",name:"スリサズ",meaning:"保護・試練・扉",
+   normal:"今あなたの前には試練という名の扉が現れています。その先には新しい世界が広がっています。急いで突き進む必要はありません。守護のエネルギーがあなたを包んでいますが、慎重さも同時に求められています。今日は行動する前に立ち止まり、深呼吸することが開運の鍵です。扉は必ず、あなたのために開かれます。",
+   weakness:"自分を守ろうとする気持ちはとても大切なものです。ただ次のステージへのヒントは、その盾を少しだけ下ろしてみること。心の壁の外側に、あなたが本当に求めているものが待っています。安全な場所から一歩だけ踏み出す勇気が、新しい扉を開いてくれます。",
+   strength:"あなたには強い保護と境界線を設ける力があります。自分や大切な人を守る本能的な力は本物で、危険を察知する感覚も鋭いです。試練をくぐり抜ける根気強さがあり、困難な状況でこそ真価を発揮します。あなたの存在自体が周囲への盾となり、誰もが安心してそばにいられる頼もしい守り手です。"},
+  {symbol:"ᚨ",name:"アンスズ",meaning:"知恵・言葉・神の声",
+   normal:"神の声があなたに語りかけています。直感やインスピレーションを大切にする時期です。言葉の力が高まっており、今発する言葉は強い影響力を持ちます。コミュニケーションを丁寧に行うことで素晴らしい縁が結ばれるでしょう。学びや学習に取り組むと大きな成果が得られます。心の声に耳を澄ませてください。",
+   weakness:"豊かな知識と思考力はあなたの大きな武器です。次のステージへのヒントは、「考える」から「感じて動く」へのシフト。頭の中で完成させた計画を、少しだけ不完全なまま外に出してみましょう。行動が知識を本物の知恵に変えてくれます。",
+   strength:"あなたには言葉と知恵で人を動かす稀有な才能があります。複雑な概念をわかりやすく伝える能力、人の心に届く言葉を選ぶ感性は本物です。高次の知恵にアクセスする直感力も持っており、重要な局面で的確な洞察をもたらします。あなたの言葉は人の人生を変える力を持っています。その声を、世界はまだ必要としています。"},
+  {symbol:"ᚱ",name:"ライド",meaning:"旅・リズム・動き",
+   normal:"旅のエネルギーがあなたを導いています。物理的な移動だけでなく、人生の旅における次のステージへの準備が整いつつあります。リズムに乗ることが大切で、焦りは禁物です。計画を立て一歩ずつ進むことで目的地に確実に近づけます。今日は動きを大切にし、停滞を避けましょう。道はすでに開かれています。",
+   weakness:"前へ進む意欲はあなたの素晴らしい力です。次のステージへのヒントは、「目的地」だけでなく「今歩いているこの道」にも目を向けること。ゴールへの焦りを少し手放すと、旅そのものが豊かな体験に変わります。立ち止まる勇気が、より遠くへ連れて行ってくれます。",
+   strength:"あなたには流れを読み、最適なタイミングで動く天性のリズム感があります。変化への適応力が高く、未知の道でも恐れずに進める開拓精神を持っています。人を目的地へと導くナビゲーターとしての才能もあり、チームをまとめて前進させる力があります。どんな道も、あなたが歩けば意味ある旅となります。"},
+  {symbol:"ᚲ",name:"ケナズ",meaning:"創造・知識・光",
+   normal:"創造の炎があなたの内側で燃えています。才能や技術を磨く絶好の時期です。暗闇の中でも光を見つけ出す力があなたにはあります。学びや創作活動に積極的に取り組むことで、隠れていた才能が花開きます。今日は何か新しいことを始めるか、技術の向上に時間を使いましょう。あなたの光を世界に見せる時です。",
+   weakness:"あなたの中に確かな光があります。次のステージへのヒントは、その光を「まだ不完全だから」と隠さないこと。世界はあなたの完璧な準備を待っているのではなく、今のあなたの輝きを必要としています。未完成のまま世に出す勇気が、才能を本物に育てます。",
+   strength:"あなたには闇の中に光を見出す創造力と、それを形にする職人的な技があります。細部への集中力と、美しいものを生み出す感性は群を抜いています。知識を実践的な知恵へと変換する力があり、学んだことを自分のものにするスピードも速い。その創造の炎は周囲を照らし、関わる人すべてにインスピレーションを与えます。"},
+  {symbol:"ᚷ",name:"ゲボ",meaning:"贈り物・均衡・交流",
+   normal:"贈り物のエネルギーが循環しています。与えることと受け取ることのバランスが今のテーマです。人との交流から思わぬ恩恵が生まれる時期です。惜しみなく与えることで、それ以上のものが返ってきます。今日は誰かのために何かをする、あるいは感謝を伝えることが幸運の扉を開きます。流れに乗って循環させましょう。",
+   weakness:"与えることへの喜びはあなたの美しさです。次のステージへのヒントは、受け取ることも同じくらい大切にすること。「ありがとう」と素直に受け取れるとき、関係はより豊かな循環を生み出します。自分を大切にすることが、さらに多くを与えられる源泉になります。",
+   strength:"あなたには人と人、エネルギーとエネルギーをつなぐ橋渡しの才能があります。与えることへの喜びが本物であり、その無条件の贈り物は周囲に豊かさをもたらします。人間関係における均衡を感じ取る繊細な感覚があり、場の空気を整え調和を生み出す力があります。あなたの存在は、周囲への贈り物そのものです。"},
+  {symbol:"ᚹ",name:"ウィニョ",meaning:"喜び・調和・幸福",
+   normal:"喜びと幸福のエネルギーがあなたを包んでいます。今は人との絆を深め、日常の小さな幸せに目を向ける時期です。調和を大切にすることであらゆる関係が豊かになります。願い事が叶いやすい時期でもあり、ポジティブな気持ちで過ごすことが開運につながります。感謝の気持ちを忘れずに。今日もあなたに光が注がれています。",
+   weakness:"調和を大切にする心はあなたの素晴らしい資質です。次のステージへのヒントは、本音を丁寧に伝えること。表面的な穏やかさより、正直な対話から生まれる深い調和の方がずっと長続きします。あなたの本当の気持ちを表現することが、より本物の喜びへとつながります。",
+   strength:"あなたには周囲に喜びと幸福をもたらす天性の明るさがあります。場の雰囲気を瞬時に和らげ、人々の心をつなぐ調和の力は本物です。幸福を感じる感受性が豊かで、日常の中に美しさや喜びを発見する能力があります。その存在そのものが周囲の光となり、あなたがいるだけで場に笑顔が増えていきます。"},
+  {symbol:"ᚺ",name:"ハガラズ",meaning:"破壊・変化・浄化",
+   normal:"変化と浄化のエネルギーが働いています。古いものが壊れていくように感じるかもしれませんが、それは新しいものが生まれるための準備です。今は流れに逆らわず、手放すことを恐れないでください。嵐のような出来事も後から振り返れば必要な転換点だったとわかるでしょう。変化の中にこそ、あなたの新しい姿が宿っています。",
+   weakness:"変化を起こす力はあなたの大きな才能です。次のステージへのヒントは、「何を壊すか」と同じくらい「何を残すか」を意識すること。破壊の後に何を創るかというビジョンが定まると、そのエネルギーは純粋な変革の力へと昇華されます。",
+   strength:"あなたには古い秩序を壊し、新しい時代を切り開く変革者の力があります。周囲が恐れて触れないことに勇敢に向き合い、浄化をもたらす力は稀有です。嵐の中でも中心を保つ精神的な強さがあり、激しい変化の時代において誰よりも輝く存在となります。その破壊は、より美しい創造への序曲です。"},
+  {symbol:"ᚾ",name:"ナウシズ",meaning:"必要・制約・忍耐",
+   normal:"今は制約の中にいますが、それは成長のための必要な段階です。焦りを手放し、じっくりと内側を見つめる時期です。必要なものと不必要なものを見極め、本当に大切なことに集中しましょう。忍耐を持って取り組むことで、今の困難が大きな力の源となります。今日は「待つ勇気」を持って。必要なものは必ずやってきます。",
+   weakness:"責任感の強さはあなたの誠実さの表れです。次のステージへのヒントは、「しなければならない」を「したい」に変えること。助けを求めることは弱さではなく、成熟した知恵です。制約の中にも選択肢はある、という視点が新しい自由をもたらします。",
+   strength:"あなたには逆境の中でこそ輝く、類まれな忍耐力と精神力があります。必要なものを見極める判断力と、本質的でないものを手放す潔さも持っています。制約の中でも創意工夫を発揮し、限られたリソースで最大の結果を生み出す力は、多くの人が持ち得ない才能です。その強さは困難の中でより輝きを増します。"},
+  {symbol:"ᛁ",name:"イサ",meaning:"静止・氷・内省",
+   normal:"今は動かず、静かに内側を見つめる時期です。氷のように透明で純粋な視点で自分自身と向き合ってください。急いで動こうとしても今は流れが止まっています。この静寂の中にこそ大切な答えが隠されています。瞑想や内省の時間を取ることで、次に進むべき方向が明確になるでしょう。静けさの中に、真実があります。",
+   weakness:"一人の静けさの中に力を見出す能力はあなたの強みです。次のステージへのヒントは、その静寂をベースにしながら、少しだけ外の温もりに触れてみること。氷が溶けるとき、それは消えるのではなく自由な水として流れ出します。あなたのエネルギーも、流れ始める準備ができています。",
+   strength:"あなたには深い内省力と、表面的な喧騒に惑わされない静かな強さがあります。一人の時間を有意義に使い、内側から答えを見つけ出す能力は本物です。感情に左右されず冷静に状況を分析する力があり、混乱した状況において誰よりも明晰な判断ができます。その静けさは周囲の指針となり、嵐の中の灯台となります。"},
+  {symbol:"ᛃ",name:"イェラ",meaning:"収穫・循環・報酬",
+   normal:"収穫の季節が近づいています。これまで積み重ねてきた努力が実を結ぶ時期です。焦らず自然のサイクルを信じてください。種を蒔き水をやり待ち続けた時間が報われます。今日は感謝の気持ちを持ちながら、丁寧に日々の作業を続けましょう。循環の流れに乗ることが幸運を呼び込みます。努力は必ず実ります。",
+   weakness:"丁寧に物事を育てる姿勢はあなたの美しさです。次のステージへのヒントは、「今はどの季節か」を感じ取ること。焦りを手放したとき、自然のリズムがあなたを正しいタイミングへと導いてくれます。今の段階を信頼することが、最も豊かな収穫への近道です。",
+   strength:"あなたには長期的な視野を持ち、着実に結果を積み上げていく力があります。焦らず自然のリズムに合わせて動く辛抱強さと、努力を継続する誠実さは本物です。物事のサイクルを見通す眼力があり、適切なタイミングで行動することができます。あなたが関わるものは必ず豊かな実を結び、周囲にも恵みをもたらします。"},
+  {symbol:"ᛇ",name:"エイワズ",meaning:"死と再生・意志・強さ",
+   normal:"終わりと始まりのエネルギーが交差しています。何かが終わろうとしているなら、それを手放す勇気を持ってください。その終わりは必ず新しい再生へとつながります。揺るぎない意志を持って今日を生きることで、深い変容が訪れます。恐れずに深みへと降りていってください。そこにあなたの真の強さが宿っています。",
+   weakness:"物事の本質を見極める意志の力はあなたの核です。次のステージへのヒントは、「終わり」を恐れないこと。手放すたびに新しい自分が生まれます。白と黒の間にある無限のグラデーションを受け入れると、世界はより豊かに広がっていきます。",
+   strength:"あなたには魂の深いところからくる揺るぎない意志の力があります。どんな逆境も乗り越え、何度でも再生する不死鳥のような生命力は本物です。物事の深層を見抜く洞察力があり、表面的なことに惑わされず本質に迫ることができます。その強さは周囲が試練に立ち向かう際の大きな支えとなっています。"},
+  {symbol:"ᛈ",name:"ペルスロ",meaning:"秘密・運命・隠れた力",
+   normal:"運命の車輪が回っています。今は見えない力があなたを導いています。隠れていた才能や可能性が表面に出てくる時期です。偶然の出会いや出来事に注目してください。そこに重要なメッセージが隠されています。直感を信じ流れに身を任せることで、思いもよらない幸運が訪れるでしょう。宇宙はすでに動き始めています。",
+   weakness:"神秘的な感受性と深い洞察力はあなたの宝です。次のステージへのヒントは、信頼できる誰かに本音を少し見せること。運命は受け取るものであると同時に、あなたの選択で形作るものでもあります。仮面を外したあなたの素顔こそ、最も強く人を引き寄せます。",
+   strength:"あなたには隠れた世界を感じ取る深い直感力と、神秘的な引き寄せの力があります。偶然に見える出来事の背後にある意味を読み取る能力は稀有です。秘密を守る信頼性と、深いレベルで人の本質を見抜く洞察力があります。その神秘的な魅力は多くの人を引き寄せ、あなたの周りに不思議な縁を結んでいきます。"},
+  {symbol:"ᛉ",name:"アルギズ",meaning:"守護・覚醒・高次",
+   normal:"高次の存在からの守護が与えられています。今あなたは覚醒への道を歩んでいます。スピリチュアルな感受性が高まっており、夢やサインに注目してください。自分を守ることと高い志を持って生きることを意識しましょう。境界線を持つことが大切な時期です。今日は直感と高次の導きを信頼して歩んでください。",
+   weakness:"守護の力と高い志はあなたの誇りです。次のステージへのヒントは、理想と現実の両方を同時に見ること。壁を少し低くしたとき、守りたかったものがより豊かに育ちます。地に足をつけながら高みを目指すことで、あなたの力は本当の意味で開花します。",
+   strength:"あなたには人や場を守る強い守護の力と、高次の知恵にアクセスする霊的な感受性があります。危険を事前に察知し、大切なものを守り抜く力は本物です。魂の覚醒を促す存在として、周囲の人々の意識を高める影響力があります。あなたの存在は周囲への霊的な盾となり、光の道を示す灯台となります。"},
+  {symbol:"ᛊ",name:"ソウィロ",meaning:"太陽・成功・生命力",
+   normal:"太陽のエネルギーがあなたに降り注いでいます。成功と勝利のエネルギーが高まっており、今は積極的に行動する時期です。目標に向かって真っすぐ進むことで道が開けます。自信を持って自分の光を輝かせてください。今日は一番大切な目標に集中することで大きな前進が生まれます。あなたの太陽は今、最も高く輝いています。",
+   weakness:"輝きたいという気持ちはあなたの本質的なエネルギーです。次のステージへのヒントは、勝利より「共に照らすこと」に喜びを見出すこと。力みを手放したとき、あなたの光は最も自然に、最も遠くまで届きます。失敗もまた太陽が雲の中を通る過程に過ぎません。",
+   strength:"あなたには周囲を照らす太陽のような明るさと、どんな状況でも前向きに進む強い生命力があります。目標に向かう集中力と、困難をエネルギーに変える回復力は抜群です。人々を鼓舞し集団全体を成功へと引き上げるリーダーシップがあります。あなたの存在そのものが周囲の希望となり、道なき道を照らします。"},
+  {symbol:"ᛏ",name:"ティワズ",meaning:"正義・勝利・犠牲",
+   normal:"正義と誠実さのエネルギーが働いています。正しいことを貫く勇気が求められている時期です。困難があっても諦めないことで最終的な勝利が得られます。何かを犠牲にしなければならない局面かもしれませんが、それは必ず報われます。今日は誠実さと公正さを軸に判断し行動してください。その誠実さが、道を開きます。",
+   weakness:"誠実さと正義感はあなたの根幹です。次のステージへのヒントは、自分自身にも同じ公正さを向けること。他者を守るあなた自身も、守られてよい存在です。少し肩の力を抜いたとき、あなたの誠実さはより多くの人の心に届くようになります。",
+   strength:"あなたには強い誠実さと、正しいことのために戦い続ける精神力があります。不正や不公正を見逃せない正義感と、それを行動に移す勇気は本物です。目標に向かって最後まで諦めない意志の強さがあり、困難な使命を全うする力があります。その誠実さは周囲の信頼と尊敬を集め、時代を超えて語り継がれます。"},
+  {symbol:"ᛒ",name:"ベルカナ",meaning:"誕生・成長・母性",
+   normal:"誕生と成長のエネルギーがあなたを包んでいます。新しい何かが芽吹こうとしている時期です。優しさと忍耐で大切なものを育てる意識を持ちましょう。自分自身の内側にある可能性も、この時期に芽生えてきます。今日は誰かを思いやることで、あなた自身も豊かになります。種を蒔く行為を丁寧に大切に。",
+   weakness:"育てる愛情はあなたの美しい本質です。次のステージへのヒントは、自分自身もその愛情で包んであげること。相手の成長を信じて手放すことも、深い愛の形です。あなたが自分を満たすとき、与えられる愛はさらに豊かになります。",
+   strength:"あなたには人を包み込む母性的な温かさと、物事を丁寧に育てる養育の力があります。芽吹きのサインを見逃さない感受性と、成長を辛抱強く見守る忍耐力は本物です。周囲の人が安心して本来の姿に戻れる場を作る才能があり、その存在は多くの人の心の拠り所となります。あなたの愛は命を育む土壌です。"},
+  {symbol:"ᛖ",name:"エワズ",meaning:"協力・信頼・移行",
+   normal:"協力と信頼のエネルギーが流れています。一人では難しいことも誰かと組むことで驚くほどスムーズに進む時期です。パートナーシップを大切にしてください。新しい段階への移行のサポートが得られています。変化を恐れず信頼できる誰かと共に次のステップを踏み出しましょう。共に歩む喜びが、力となります。",
+   weakness:"協調性と誠実さはあなたの財産です。次のステージへのヒントは、「信頼する練習」を少しずつ積み重ねること。対等な関係は完全な安心からではなく、小さな信頼の積み重ねから生まれます。移行の不安は、成長しているサインでもあります。",
+   strength:"あなたには人と深い信頼で結びつく能力と、チームワークを最大化する協調性があります。相手の力を引き出し共に高め合うパートナーシップの才能は本物です。変化の時期を柔軟に乗り越える適応力があり、移行期においても周囲を安心させる存在感を持っています。あなたと組んだ人は、より遠くへ行けます。"},
+  {symbol:"ᛗ",name:"マナズ",meaning:"人間性・知性・自己",
+   normal:"あなたの人間性と知性が輝く時期です。自分自身を深く知ることが今最も大切なテーマです。他者との関係を通じて自己の本質が映し出されます。知的な探求や学びが今のあなたに豊かさをもたらします。今日は人との交流を大切にしながら、自分自身のあり方を問い直してみてください。あなたという存在は、深く美しい。",
+   weakness:"深い自己洞察力はあなたの知性の証です。次のステージへのヒントは、分析の手を少し止めてただ感じること。完璧な自分でなくてもよい、という気づきが心を開放します。不完全な自分を認めたとき、人との本当のつながりが始まります。",
+   strength:"あなたには深い自己洞察力と、人間本質への理解力があります。自分を客観的に見る眼と、他者の内面を理解する共感力は本物です。知性と感性のバランスが取れており、論理的に考えながらも人の心に寄り添うことができます。その人間的な深さは周囲の人々を惹きつけ、何年経っても色褪せません。"},
+  {symbol:"ᛚ",name:"ラグズ",meaning:"水・感情・流れ",
+   normal:"感情と直感のエネルギーが高まっています。水のように流れることが大切な時期です。感情を抑え込まず自然に表現することで本来の流れが戻ってきます。直感に従って動くことで理性では計算できないような幸運が訪れます。今日は心の声に従い柔軟に流れを受け入れてください。感情は羅針盤、信頼しましょう。",
+   weakness:"豊かな感受性はあなたの深い力の源です。次のステージへのヒントは、感情の流れを「乗りこなす」技術を育てること。波に飲まれるのではなく波に乗るサーファーのように、感情をエネルギーとして使いこなせるとき、その感受性は最大の武器になります。",
+   strength:"あなたには深い感受性と、感情の流れを読み取る卓越した能力があります。他者の気持ちに寄り添い、言葉にならない思いを感じ取る共感力は本物です。直感的な洞察力が高く、理性では掴めない本質をいち早く感じ取ります。その豊かな感情世界は創造性と癒しの源泉となり、多くの人を救います。"},
+  {symbol:"ᛜ",name:"イング",meaning:"完成・豊穣・内なる火",
+   normal:"完成と豊穣のエネルギーが満ちています。内側に眠る火が静かに燃え始めています。今は外に向かって発信するよりも、内なる力を蓄える時期です。完成に向けて最後の仕上げをする段階に来ています。今日は静かに、でも確実に自分の中の力を育てることに集中してください。内側から満ちる時がきています。",
+   weakness:"内なる豊かさを育てる力はあなたの核心です。次のステージへのヒントは、蓄えたエネルギーを少しずつ外に出していくこと。完璧を待たずに今のあなたを分かち合うとき、その豊かさは世界と共鳴し始めます。出すことで、さらに満たされていきます。",
+   strength:"あなたには内なる火を燃やし続ける強い意志と、豊かさを内側から生み出す力があります。完成に向けて粘り強く取り組む姿勢と、質にこだわる誠実さは本物です。蓄えたエネルギーを適切なタイミングで解放する知恵があり、その完成されたものは周囲に大きな恵みをもたらします。内なる炎は消えません。"},
+  {symbol:"ᛞ",name:"ダガズ",meaning:"夜明け・変容・覚醒",
+   normal:"夜明けのエネルギーがあなたに訪れています。長い夜が明け、新しい光の中に入ろうとしています。大きな覚醒と変容の時期であり、あなたの人生が根本から変わり始めています。古い自分を手放し新しい自分として生まれ変わることを恐れないでください。今日が新たな出発点となります。夜明けは必ずやってきます。",
+   weakness:"変化への感受性はあなたの覚醒のサインです。次のステージへのヒントは、夜明けを「待つ」のではなく「自ら光の中へ歩き出す」こと。変容の不安は、あなたが成長している証拠です。一歩踏み出すとき、長かった夜は一瞬で明けていきます。",
+   strength:"あなたには闇の中から光を見出し、新しい時代を切り開く覚醒者としての力があります。変容を恐れずに突き進む勇気と、生まれ変わるたびに以前より強くなる再生力は本物です。夜明けを感じ取る鋭い感受性があり、時代の転換点においていち早く動き出すことができます。あなたは暗闇を照らす最初の光です。"},
+  {symbol:"ᛟ",name:"オシラ",meaning:"故郷・遺産・帰還",
+   normal:"故郷と遺産のエネルギーが語りかけています。自分のルーツや本来の姿に立ち返る時期が来ています。受け継いだものの中に大切な宝が眠っています。今一度、自分が本当に大切にしたいものは何かを問い直しましょう。今日は家族や故郷、あるいは自分の原点に思いを馳せることで力が湧いてきます。",
+   weakness:"ルーツへの深い愛着はあなたの安定の源です。次のステージへのヒントは、過去を「土台」として前へ進むこと。受け継いだものを大切にしながら、今という瞬間に生きること。根を持ちながら枝を伸ばす木のように、あなたは過去と未来の橋渡しができる存在です。",
+   strength:"あなたには深い歴史と遺産への敬意を持ち、それを未来へとつなぐ架け橋の力があります。ルーツへの繋がりが強く、伝統や本質的な価値を守り継ぐ守護者としての才能があります。故郷を感じさせる温かさがあり、どこにいても人々に「帰ってきた」という安らぎを与える存在です。あなたは人々の根となります。"}
+];
+
+const THEMES = [
+  {id:"today",emoji:"☀️",label:"今日の運勢",desc:"今日の流れ・注意点・開運行動",prefix:"今日という一日、"},
+  {id:"love",emoji:"💖",label:"恋愛",desc:"出会い・片思い・復縁・夫婦関係",prefix:"恋愛の流れにおいて、"},
+  {id:"work",emoji:"💼",label:"仕事",desc:"転職・職場・成功・評価",prefix:"仕事と使命について、"},
+  {id:"money",emoji:"💰",label:"金運",desc:"収入・副業・豊かさ",prefix:"金運と豊かさについて、"},
+  {id:"compatibility",emoji:"🤝",label:"相性",desc:"気になる人との縁や距離感",prefix:"人との縁と相性において、"},
+  {id:"future",emoji:"🌙",label:"未来",desc:"これから起こる流れと転機",prefix:"これからの未来に向けて、"},
+  {id:"soul",emoji:"🕊️",label:"心・魂",desc:"迷い・不安・本音・癒し",prefix:"心と魂の深いところで、"},
+  {id:"custom",emoji:"✍️",label:"自由入力",desc:"自分だけの質問で占う",prefix:""}
+];
+
+// ─── 状態管理 ────────────────────────────────────────────────────
+let STATE = {
+  plan: null,
+  mode: "normal",
+  theme: "today",
+  selRune: null,
+  result: null
+};
+
+// ─── 星を生成 ────────────────────────────────────────────────────
+(function createStars(){
+  const c = document.getElementById("stars");
+  // 背景色を確実に設定
+  c.style.background = "#050a14";
+  for(let i=0;i<120;i++){
+    const d = document.createElement("div");
+    d.className = "star";
+    const s = (i%6)*0.35+0.3;
+    const op = 0.3 + (i%5)*0.12;
+    d.style.cssText = `left:${(i*37.3+11)%100}%;top:${(i*53.7+7)%100}%;width:${s}px;height:${s}px;opacity:${op};animation:tw ${(i%5)*0.6+1.8}s ${(i*0.11)%5}s ease-in-out infinite alternate;`;
+    c.appendChild(d);
+  }
+})();
+
+// ─── テーマグリッドを生成 ────────────────────────────────────────
+(function buildThemes(){
+  const g = document.getElementById("themeGrid");
+  THEMES.forEach(t=>{
+    const d = document.createElement("div");
+    d.className = "tc";
+    d.style.cssText = "background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);";
+    d.innerHTML = `<div style="font-size:22px;margin-bottom:5px;">${t.emoji}</div><div style="font-family:'Cinzel',serif;font-size:13px;color:#d4c4a0;margin-bottom:3px;">${t.label}</div><div style="font-size:11px;color:#4a4030;line-height:1.55;">${t.desc}</div>`;
+    d.onclick = ()=>{
+      STATE.theme = t.id;
+      STATE.mode = "normal";
+      if(t.id==="custom") showPage("custom");
+      else showPage("stones");
+    };
+    g.appendChild(d);
+  });
+})();
+
+// ─── ページ切り替え ──────────────────────────────────────────────
+function showPage(name){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  const p = document.getElementById("page-"+name);
+  if(p){ p.classList.add("active"); p.classList.remove("scr"); void p.offsetWidth; p.classList.add("scr"); }
+  window.scrollTo({top:0,behavior:"smooth"});
+
+  if(name==="stones") buildStones();
+}
+
+// ─── プラン選択 ──────────────────────────────────────────────────
+function selectPlan(id){
+  STATE.plan = id;
+  const plans = {basic:{label:"今日の運勢 ¥500",color:"#c8a96e"},monthly:{label:"月額プラン ¥2,000",color:"#9d6fff"},premium:{label:"プレミアム ¥3,000",color:"#e87c7c"}};
+  const p = plans[id];
+  const badge = document.getElementById("planBadge");
+  const badgeText = document.getElementById("planBadgeText");
+  badge.style.display = "block";
+  badgeText.style.color = p.color;
+  badgeText.textContent = p.label;
+
+  const canPremium = id==="monthly"||id==="premium";
+  document.getElementById("premiumCorners").style.display = canPremium?"grid":"none";
+  document.getElementById("lockedCorners").style.display = canPremium?"none":"block";
+  document.getElementById("homeCornerLabel").textContent = canPremium?"✦ 3つの鑑定コーナー ✦":"✦ 鑑定コーナー ✦";
+
+  showPage("home");
+}
+
+// ─── コーナー開始 ────────────────────────────────────────────────
+function startCorner(mode){
+  STATE.mode = mode;
+  showPage("stones");
+}
+
+// ─── ホームへ ────────────────────────────────────────────────────
+function goHome(){
+  STATE.mode="normal"; STATE.selRune=null; STATE.result=null;
+  showPage("home");
+}
+
+// ─── 石グリッドを生成 ────────────────────────────────────────────
+function buildStones(){
+  const m = STATE.mode;
+  const isW = m==="weakness", isS = m==="strength";
+  document.getElementById("stoneHeader").textContent = isW?"🪞 成長の鏡 — 石を選んでください":isS?"⭐ 良い点発見 — 石を選んでください":"24の石から1つ選んでください";
+  document.getElementById("stoneHeader").style.color = isW?"#ff7a5a":isS?"#7dffaa":"#c8a96e";
+  document.getElementById("stoneSub").textContent = isW?"あなたの次のステージを照らす石が呼んでいます":isS?"あなたの光を知る石が輝いています":"直感で気になる石を選んでください";
+  document.getElementById("stoneBackBtn").onclick = ()=>showPage(m==="normal"?"themes":"home");
+
+  const mainColor = isW?"#ff9a6a":isS?"#a8ffbe":"#e8c97a";
+  const borderCol = isW?"rgba(200,50,40,.32)":isS?"rgba(70,190,90,.28)":"rgba(200,169,110,.25)";
+  const bgGrad = isW?"radial-gradient(ellipse at 35% 30%,rgba(200,50,40,.18),rgba(12,3,3,.88))":isS?"radial-gradient(ellipse at 35% 30%,rgba(60,180,90,.15),rgba(3,12,6,.88))":"radial-gradient(ellipse at 35% 30%,rgba(200,169,110,.14),rgba(10,15,30,.8))";
+
+  const g = document.getElementById("stoneGrid");
+  g.innerHTML = "";
+  RUNES.forEach((r,i)=>{
+    const d = document.createElement("div");
+    d.className = "stone";
+    d.style.cssText = `background:${bgGrad};border:1px solid ${borderCol};animation:up .4s ${i*.024}s both;`;
+    d.innerHTML = `<div style="font-size:20px;color:${mainColor};margin-bottom:3px;font-family:serif;">${r.symbol}</div><div style="font-size:9px;color:rgba(140,120,100,.48);">${r.name}</div>`;
+    d.onmouseenter = ()=>{ document.getElementById("hoverInfo").textContent = `${r.symbol} ${r.name} — ${r.meaning}`; document.getElementById("hoverInfo").style.color=mainColor; };
+    d.onmouseleave = ()=>{ document.getElementById("hoverInfo").textContent=""; };
+    d.onclick = ()=>pickRune(r);
+    g.appendChild(d);
+  });
+}
+
+// ─── 石を選んだ ──────────────────────────────────────────────────
+function pickRune(rune){
+  STATE.selRune = rune;
+  const m = STATE.mode;
+  const th = THEMES.find(t=>t.id===STATE.theme)||THEMES[0];
+  const cq = document.getElementById("customInput").value;
+
+  let text = "";
+  if(m==="weakness") text = rune.weakness;
+  else if(m==="strength") text = rune.strength;
+  else text = (STATE.theme==="custom"?cq+"\n\n":th.prefix) + rune.normal;
+
+  STATE.result = {text, type:m, theme:STATE.theme};
+  showPage("reading");
+  renderReading();
+}
+
+// ─── 鑑定結果を描画 ──────────────────────────────────────────────
+function renderReading(){
+  const {selRune:r, result:res} = STATE;
+  if(!r||!res) return;
+
+  const isW = res.type==="weakness", isS = res.type==="strength", isN = res.type==="normal";
+  const mainC = isW?"#ff7a5a":isS?"#7dffaa":"#c8a96e";
+  const borderC = isW?"rgba(200,50,40,.3)":isS?"rgba(60,190,80,.28)":"rgba(200,169,110,.25)";
+  const bgC = isW?"linear-gradient(145deg,rgba(28,4,4,.97),rgba(14,2,2,.99))":isS?"linear-gradient(145deg,rgba(3,18,6,.97),rgba(2,10,4,.99))":"linear-gradient(145deg,rgba(18,13,32,.93),rgba(9,7,18,.97))";
+  const animC = isW?"rl":isS?"gr":"gl";
+  const txtC = isW?"rgba(235,175,155,.92)":isS?"rgba(175,242,185,.92)":"#d4c9a8";
+
+  // ルーン表示
+  const sym = document.getElementById("readingRuneSymbol");
+  if(isN){
+    sym.style.cssText = `font-size:72px;font-family:serif;margin-bottom:10px;color:#e8c97a;text-shadow:0 0 32px rgba(232,201,122,.5),0 0 64px rgba(200,140,60,.22);`;
+  } else {
+    const grad = isW?"linear-gradient(180deg,#ff9a3c,#ff6b4a,#b02a1a)":"linear-gradient(180deg,#b8ffcc,#7dffaa,#1a9a44)";
+    const glowC = isW?"rgba(200,70,50,.55)":"rgba(80,220,100,.5)";
+    sym.style.cssText = `font-size:72px;font-family:serif;margin-bottom:10px;background:${grad};-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 14px ${glowC});`;
+  }
+  sym.textContent = r.symbol;
+  document.getElementById("readingRuneName").style.color = mainC;
+  document.getElementById("readingRuneName").textContent = r.name;
+  document.getElementById("readingRuneMeaning").textContent = r.meaning;
+
+  // テーマバッジ
+  const badge = document.getElementById("themeBadge");
+  if(isN && STATE.theme!=="custom"){
+    const th = THEMES.find(t=>t.id===STATE.theme);
+    document.getElementById("themeBadgeText").textContent = `${th.emoji} ${th.label}`;
+    badge.style.display = "block";
+  } else { badge.style.display = "none"; }
+
+  // カード
+  const card = document.getElementById("readingCard");
+  card.style.cssText = `border-radius:20px;padding:26px 22px;margin-bottom:20px;position:relative;overflow:hidden;border:1px solid ${borderC};background:${bgC};animation:${animC} 5s ease-in-out infinite;opacity:0;transition:opacity .7s ease;`;
+  document.getElementById("cardBgRune").style.color = isW?"rgba(200,40,40,.05)":isS?"rgba(50,200,70,.05)":"rgba(200,169,110,.04)";
+  document.getElementById("cardBgRune").textContent = isW?"ᚺ":isS?"ᛊ":"ᛏ";
+  document.getElementById("cardTopLine").style.background = `linear-gradient(90deg,transparent,${borderC},transparent)`;
+
+  // ヘッダー（通常以外）
+  const hdr = document.getElementById("cardHeader");
+  if(!isN){
+    hdr.style.display = "block";
+    document.getElementById("cardIcon").textContent = isW?"🪞":"⭐";
+    document.getElementById("cardSubtitle").style.color = isW?"rgba(210,70,50,.62)":"rgba(70,200,90,.6)";
+    document.getElementById("cardSubtitle").textContent = isW?"MIRROR OF GROWTH":"LIGHT OF TRUTH";
+    const titleEl = document.getElementById("cardTitle");
+    if(isS){
+      titleEl.style.cssText = "font-family:'Cinzel',serif;font-size:13px;letter-spacing:.05em;background:linear-gradient(135deg,#7dffaa,#ffe066);-webkit-background-clip:text;-webkit-text-fill-color:transparent;";
+    } else {
+      titleEl.style.cssText = "font-family:'Cinzel',serif;font-size:13px;letter-spacing:.05em;color:#ff7a5a;";
+    }
+    titleEl.textContent = isW?"成長の鏡 — 気づきと次のステージへ":"光の鏡 — 真の強み・良い点";
+    document.getElementById("cardDivider").style.background = `linear-gradient(90deg,${borderC},transparent)`;
+  } else { hdr.style.display = "none"; }
+
+  // 本文
+  document.getElementById("readingText").style.color = txtC;
+  document.getElementById("readingText").textContent = res.text;
+
+  // フッター
+  const ftr = document.getElementById("cardFooter");
+  if(!isN){
+    ftr.style.borderTop = `1px solid ${isW?"rgba(200,50,40,.12)":"rgba(60,190,80,.11)"}`;
+    ftr.style.display = "block";
+    document.getElementById("cardFooterText").style.color = isW?"rgba(200,100,80,.38)":"rgba(80,200,90,.38)";
+    document.getElementById("cardFooterText").textContent = isW?"✦ 気づきはあなたを次のステージへ連れて行く ✦":"✦ この強みを全面に伸ばすことが、あなたの使命 ✦";
+  } else { ftr.style.display = "none"; }
+
+  // ボタン色
+  const retryBtn = document.getElementById("retryBtn");
+  retryBtn.style.border = `1px solid ${borderC}`;
+  retryBtn.style.color = mainC;
+  const homeBtn = document.getElementById("homeBtn");
+  homeBtn.style.background = isW?"linear-gradient(135deg,#b02a1a,#7a1010)":isS?"linear-gradient(135deg,#1a7a30,#0f5520)":"linear-gradient(135deg,#c8a96e,#9d7a3a)";
+  homeBtn.style.color = isW?"#fff0ee":isS?"#e0ffe8":"#1a1205";
+
+  // フェードイン
+  setTimeout(()=>{ card.style.opacity="1"; }, 100);
+
+  // 相互誘導（プレミアムのみ）
+  const canP = STATE.plan==="monthly"||STATE.plan==="premium";
+  const cross = document.getElementById("crossBanner");
+  if(canP && !isN){
+    cross.style.display = "block";
+    if(isW){
+      cross.style.background = "rgba(3,18,6,.48)";
+      cross.style.border = "1px solid rgba(60,190,80,.15)";
+      document.getElementById("crossText").innerHTML = `気づきを得た次は…<br><span style="color:rgba(155,238,168,.8);">あなたの「良い点」も見てみませんか？</span>`;
+      document.getElementById("crossText").style.color = "rgba(110,205,125,.65)";
+      const cb = document.getElementById("crossBtn");
+      cb.textContent = "⭐ 良い点発見コーナーへ";
+      cb.style.background = "linear-gradient(135deg,#1a7a30,#0f5520)";
+      cb.style.color = "#e0ffe8";
+      cb.onclick = ()=>startCorner("strength");
+    } else {
+      cross.style.background = "rgba(28,4,4,.42)";
+      cross.style.border = "1px solid rgba(200,50,40,.14)";
+      document.getElementById("crossText").innerHTML = `強みを知った次は…<br><span style="color:rgba(238,148,128,.8);">「成長の鏡」で気づきのヒントも受け取りませんか？</span>`;
+      document.getElementById("crossText").style.color = "rgba(205,125,105,.65)";
+      const cb = document.getElementById("crossBtn");
+      cb.textContent = "🪞 成長の鏡コーナーへ";
+      cb.style.background = "linear-gradient(135deg,#b02a1a,#7a1010)";
+      cb.style.color = "#fff0ee";
+      cb.onclick = ()=>startCorner("weakness");
+    }
+  } else { cross.style.display = "none"; }
+}
+
+// ─── 別の石を選ぶ ────────────────────────────────────────────────
+function retryStone(){
+  STATE.selRune = null; STATE.result = null;
+  showPage("stones");
+}
+</script>
+</body>
+</html>
