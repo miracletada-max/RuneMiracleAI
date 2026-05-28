@@ -1,4 +1,4 @@
-index.html<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja" style="background:#050a14;">
 <head>
 <meta charset="UTF-8">
